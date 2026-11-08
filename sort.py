@@ -7,7 +7,7 @@ desktop_path = Path.home()/ "Рабочий стол"
 folders = {
     "json_files": [".json"],
     "deb_installers": [".deb"],
-    "Pictures": [".jpeg", ".jpg", ".png"]
+    "pics": [".jpeg", ".jpg", ".png"]
 }
 
 for folder_name in folders.keys():
@@ -17,11 +17,14 @@ for item in desktop_path.iterdir():
     if item.is_file():
         ext = item.suffix.lower()
 
-        for folder_name, extensions in folder.items():
+        for folder_name, extensions in folders.items():
             if ext in extensions:
-              
-              shutil.move(str(item), str(desktop_path / folder_name / item.name))
-              print("{item.name} to {folder_name}")
-              break 
+                target_path = desktop_path / folder_name / item.name
+                try:
+                    shutil.move(str(item), str(target_path))
+                    print(f"Success! {item.name} > {folder_name}")
+                except Exception as e:
+                    print(f"Smth isn`t right here...")
+                break 
 
 print("Done!")
