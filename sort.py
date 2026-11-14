@@ -1,30 +1,51 @@
-import os
 import shutil
 from pathlib import Path
 
-desktop_path = Path.home()/ "Рабочий стол"
+home = Path.home()
+sources = []
+for name in ["Desktop", "Рабочий стол", "Downloads", "Загрузки"]:
+    p = home / name 
+    if p.exists() and p.is_dir():
+        sources.append(p)
 
-folders = {
-    "json_files": [".json"],
-    "deb_installers": [".deb"],
-    "pics": [".jpeg", ".jpg", ".png"]
+if not sources:
+    print("Not found")
+    exit()
+
+targets = {
+    "Pictures": {
+        "path": home / "Pictures",
+        "extensions": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg"]
+    },
+    "Service": {
+        "path": home / "Service",
+        "extensions": [
+            #установщики
+            ".deb", ".rpm", ".appimage", ".AppImage", ".exe", ".msi",
+            #архивы 
+            ".zip", ".rar", ".7z", ".tar", ".gz", ".tar.gz", ".tgz", ".bz2", ".xz",
+            #прочее
+            ".json", ".iso"
+        ]
+    }
 }
 
-for folder_name in folders.keys():
-    (desktop_path / folder_name).mkdir(exist_ok=True)
+for info in targets.values():
+    info["path"].mkdir(exist_ok=True)
 
-for item in desktop_path.iterdir():
-    if item.is_file():
-        ext = item.suffix.lower()
+for source in sources:
+    for item in source.iterdir():
+        if not item.is_file():
+            continue
 
-        for folder_name, extensions in folders.items():
-            if ext in extensions:
-                target_path = desktop_path / folder_name / item.name
-                try:
-                    shutil.move(str(item), str(target_path))
-                    print(f"Success! {item.name} > {folder_name}")
-                except Exception as e:
-                    print(f"Smth isn`t right here...")
-                break 
+        target_dir, category = find_target(item.name.lower())
+        if target_dir is None:
+            continue
+
+        try:
+            dst = safe_move(item, target_dir)
+            print(f"{item.name} > {category}")
+        except Exception as e:
+            print(f"Smth isn`t right here...")
 
 print("Done!")
